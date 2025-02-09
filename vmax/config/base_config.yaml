@@ -1,0 +1,110 @@
+hydra:
+  run:
+    dir: ${output_dir:${algorithm.name}, ${observation_type}, ${reward_type}, ${network.encoder}, ${name_run}, ${name_exp}}
+
+defaults:
+  - _self_
+  - algorithm: ???
+  - network: base
+  - override hydra/job_logging: custom
+
+# Flags config
+debug_flag: false
+perf_flag: false
+cache_flag: false
+
+# Run config
+total_timesteps: 5_000_000
+num_envs: 16
+num_episode_per_epoch: 4
+num_scenario_per_eval: 256
+scenario_length: 80
+log_freq: 20
+save_freq: 100
+eval_freq: 0
+seed: 0
+name_run: null
+name_exp: null
+
+# Env config
+path_dataset: ???
+path_dataset_eval: null
+waymo_dataset: false
+max_num_objects: 64
+termination_keys: [offroad, overlap, run_red_light]
+
+# Reward config
+reward_type: linear
+reward_config:
+  overlap:
+    bonus: 0.0
+    penalty: -1.0
+    weight: 1.0
+  offroad:
+    bonus: 0.0
+    penalty: -1.0
+    weight: 1.0
+  red_light:
+    penalty: -1.0
+    weight: 1.0
+  driving_direction:
+    bonus: 0.0
+    penalty: -1.0
+    weight: 1.0
+  progression:
+    bonus: 1.0
+    penalty: 0.0
+    weight: 0.5
+  speed:
+    bonus: 1.0
+    penalty: -1.0
+    weight: 0.5
+  ttc:
+    threshold: 1.5
+    bonus: 0.0
+    penalty: -1.0
+    weight: 1.0
+  lane_deviation:
+    bonus: 0.0
+    penalty: -1.0
+    weight: 1
+
+# Observation config
+observation_type: base
+observation_config:
+  obs_past_num_steps: 5
+  objects:
+    features:
+      - waypoints
+      - velocity
+      - yaw
+      - size
+      - valid
+    num_closest_objects: 8
+  roadgraphs:
+    features:
+      - waypoints
+      - direction
+      - types
+      - valid
+    interval: 2
+    max_meters: 50
+    roadgraph_top_k: 256
+    meters_box:
+      front: 50
+      back: 10
+      left: 20
+      right: 20
+    max_num_lanes: 10
+    max_num_points_per_lane: 20
+  traffic_lights:
+    features:
+      - waypoints
+      - state
+      - valid
+    num_closest_traffic_lights: 16 # Used in: base
+  path_target:
+    features:
+      - waypoints
+    num_points: 10
+    points_gap: 5

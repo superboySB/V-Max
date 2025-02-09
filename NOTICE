@@ -1,0 +1,27 @@
+NOTICE
+======
+
+This project includes code from external libraries under various open-source
+licenses. See LICENSE for full details.
+
+
+Modifications
+-------------
+
+The following files have been modified from the original Waymax simulator and include custom changes:
+ - vmax/simulator/waymax_overrides/visualization/viz.py:
+    Modified viz for improved vizualisation.
+ - vmax/simulator/waymax_overrides/visualization/utils.py:
+    Modified utils, such as bounding box plotting, for improved vizualisation.
+ - vmax/simulator/waymax_overrides/datatypes/roadgraph.py:
+    Modified to include the rectangle filter to the roadgraph data, also modified filter_topk_roadgraph_points to keep the original ordering of the points in the roadgraph data (by lane instead of distance)
+ - vmax/simulator/waymax_overrides/datatypes/observation.py:
+    Modified to include proper transformation of the SDC paths data, and added a rectangle filter from the sdc_observation_from_state
+
+
+
+
+Acknowledgments
+---------------
+
+We would like to thank the authors and contributors of the third-party components used in this project.
