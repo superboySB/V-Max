@@ -6,6 +6,7 @@ jax[cuda12]
 flax
 distrax
 einops
+tf_keras
 # Utilities
 hydra-core
 matplotlib<3.10
