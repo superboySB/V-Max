@@ -1,10 +1,10 @@
 # Observation Wrappers Documentation
 
-This document explains the observation wrappers used in V-Max and delineates the role of their corresponding feature extractors.
+This document explains the observation wrappers used in V-Max and describes the role of their corresponding feature extractors.
 
 ## Observation Wrappers
 
-We use wrappers to apply an observation function on top of the environment. The goal is to override the `observe` function to apply a custom transformation.
+Wrappers are used to apply an observation function to the environment by overriding the `observe` method with a custom transformation.
 
 We designed several configurable observations:
 - `base_observation.py`
@@ -13,9 +13,9 @@ We designed several configurable observations:
 - `segment_observation.py`
 - `gt_observation.py`
 
-Each observation works with a feature extractor that is instantiated within its wrapper. The feature extractor transforms a `datatypes.Observation` into a structured set of features for downstream processing.
+Each observation is paired with a feature extractor that converts a `datatypes.Observation` into a structured set of features for downstream processing.
 
-We define four feature groups in `features_datatypes.py`, along with their associated feature types:
+We define four feature groups in `features_datatypes.py` along with their associated feature types:
 
 - **Objects** (vehicles, pedestrians, bicycles):
     - waypoints (xy)
@@ -25,7 +25,7 @@ We define four feature groups in `features_datatypes.py`, along with their assoc
     - size (length, width)
     - object_types (object_types)
     - valid (valid)
-- **Roadgraph points**:
+- **Roadgraph Points**:
     - waypoints (xy)
     - direction (dir_xy)
     - types (types)
@@ -37,50 +37,56 @@ We define four feature groups in `features_datatypes.py`, along with their assoc
 - **Path Target**:
     - waypoints (xy)
 
-For each feature group, a common extraction process is defined:
-- **Objects**: Dynamic objects (up to N objects, with N = max_num_objects - 1) are sorted by distance to the SDC.
-- **Traffic Lights**: A similar strategy is employed, considering only traffic lights relevant to the SDC.
-- **Path Target**: Selects the longest SDC path containing the SDC's log trajectory and subsamples it into N points spaced every X meters.
-- **Roadgraph points**: Involves a multi-step process:
-    - First, select points from the SDC observation using a top_k strategy to keep a fixed number of the closest points. Alternatively, a rectangular selection can be applied to filter points within a specified range in front, back, left, and right of the SDC.
-    - Points are then downsampled by a specified interval (default is one, meaning every point is kept; using 2 means one point every two points).
-    - Finally, a filter is applied to retain only points of certain types (e.g., lane center points, road lines, or road edges).
+The common feature extraction process for each group is as follows:
+- **Objects**: Dynamic objects (up to N objects, with N = max_num_objects - 1) are sorted by their distance to the SDC.
+- **Traffic Lights**: A similar sorting strategy is applied.
+- **Path Target**: Selects the longest SDC path containing the SDC's logged trajectory and subsamples it into N points, spaced every X meters.
+- **Roadgraph Points**: Involves several steps:
+    - First, select points from the SDC observation using a top_k strategy to retain a fixed number of the closest points. Alternatively, a rectangular selection filter can be applied within a specified range in front, back, left, and right of the SDC.
+    - Downsample the points by a defined interval (default is 1, meaning every point is kept; using 2 means one point every two points).
+    - Optionally filter the points to retain only certain types (e.g., lane center points, road lines, road edges).
+    - Finally, apply a top_k operation to the remaining valid points to keep a fixed number.
+
+In summary, roadgraph extraction follows this sequence: preselection → downsampling → filtering → selection.
 
 ### Base Observation & Extractor
 
-![alt text](https://github.com/valeoai/V-Max/tree/main/docs/assets/png/base_obs.png)
+![base_obs](assets/png/base_obs.png)
 
-
-The Base Observation wrapper provides a standard interface that:
+The Base Observation wrapper establishes a standard interface that:
 - Initializes the observation with default configurations.
-- Instantiates a Base Features Extractor that sets up necessary normalization routines.
-- Handles the aggregation of various feature groups (objects, roadgraph points, traffic lights, and path targets) into a single concatenated observation array.
+- Instantiates a Base Features Extractor to set up the basic extraction functions.
+- Aggregates various feature groups (objects, roadgraph points, traffic lights, and path targets) into a single concatenated observation array.
 
-The associated Base Features Extractor is designed for extensibility:
-- It establishes default parameters for each feature group while allowing overrides.
-- It supports dynamic extraction and normalization of features.
-- Its modular structure simplifies the creation of specialized extractors for different observation requirements.
+The Base Features Extractor is designed for extensibility:
+- It provides default parameters for each feature group while allowing for overrides.
+- It supports dynamic feature extraction and normalization.
+- Its modular structure simplifies the creation of specialized extractors for different observation needs.
 
-### Lane Extractor
+### Lane Observation & Extractor
 
-![alt text](https://github.com/valeoai/V-Max/tree/main/docs/assets/png/lane_obs.png)
+![lane_obs](assets/png/lane_obs.png)
 
-Specializes in extracting lane-specific features from roadgraph points. It applies a lane-specific filtering to retain only lane surface street points, ensuring that only relevant roadway lane data is processed. This targeted design aids in constructing a more precise representation of the roadway lanes.
+The **Lane Extractor** inherits from the Base Extractor. The only difference is in its filter function, which retains only lane center points as valid.
 
-### Road Extractor
+### Road Observation & Extractor
 
-![alt text](https://github.com/valeoai/V-Max/tree/main/docs/assets/png/road_obs.png)
+![road_obs](assets/png/road_obs.png)
 
-Focuses on extracting features related to road lines and edge boundaries. This extractor is essential for identifying marked road elements and contributes to safe navigation by highlighting lane demarcations.
+The **Road Extractor** also inherits from the Base Extractor. Its filter function retains only road features as valid, including road boundaries and road lines.
 
-### Segment Extractor
+### Segment Observation & Extractor
 
-![alt text](https://github.com/valeoai/V-Max/tree/main/docs/assets/png/segment_obs.png)
+![segment_obs](assets/png/segment_obs.png)
 
-Implements a sampling strategy to efficiently extract features from high-density observations. It subsamples roadgraph points and other features to reduce computational overhead while still preserving essential information.
+The **Segment Extractor** inherits from the Base Extractor but implements different extraction strategies for the roadgraph and the traffic lights:
 
-### GT Extractor
+**Roadgraph**:
+    - Roadgraph points are extracted as segments, represented by points with the same identifier. The process involves selecting the N segments closest to the SDC, followed by interpolation to redefine each segment with M points.
 
-![alt text](https://github.com/valeoai/V-Max/tree/main/docs/assets/png/gt_obs.png)
+**Traffic Light**:
+    - Only one traffic light is considered, specifically the one located on the path target.
 
-Designed to compute ground truth path target features. It analyzes the SDC’s path history to generate accurate target waypoints, often used in supervised learning scenarios for trajectory prediction.
+### GT Observation & Extractor
+
+The **GT Extractor** extracts the logged trajectory of the SDC. This privileged information is useful for debugging learning algorithms by providing an easily verifiable reference.

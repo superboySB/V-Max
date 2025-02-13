@@ -9,7 +9,24 @@
 
 V-Max is a plug-and-play extension of the [Waymax](https://github.com/waymo-research/waymax) simulator designed for the autonomous driving research community.
 
-It provides a unified framework for benchmarking, training, and evaluation of a path planner from BEV to control. It integrates simulation pipelines, observation and action wrappers, and realistic metrics.
+It provides a **unified framework** for benchmarking, training, and evaluation of a path planner from BEV to control. It integrates simulation pipelines, observation and action wrappers, and realistic metrics.
+
+<div align="center">
+<table>
+  <tr>
+    <th>Expert</th>
+    <th>RL Policy</th>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/trajectories/expert/scene1.gif" alt="Expert Scene 1" width="300"/></td>
+    <td><img src="docs/assets/trajectories/agent/scene1.gif" alt="Agent Scene 1" width="300"/></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/trajectories/expert/scene2.gif" alt="Expert Scene 2" width="300"/></td>
+    <td><img src="docs/assets/trajectories/agent/scene2.gif" alt="Agent Scene 2" width="300"/></td>
+  </tr>
+</table>
+</div>
 
 ## Features
 
@@ -64,12 +81,13 @@ vmax
 
 ## ScenarioMax
 
-ScenarioMax is a key feature of V-Max. The first goal is to add SDC paths to the data. We rely on the SDC paths to compute target, rewards and metrics.
+**ScenarioMax** is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
 
-The second goal is to provided a unified data among the AD datasets, similar to ScenarioNet and Metadrive.
+Key objectives:
+- **Enrich Data:** By incorporating SDC paths, ScenarioMax helps improve the precision of target computations, reward evaluations, and metric calculations.
+- **Unified Dataset:** It consolidates data from different autonomous driving (AD) datasets into a single, standardized format, similar to the approaches found in [ScenarioNet](https://github.com/metadriverse/scenarionet).
 
-To try V-Max without the need of ScenarioMAX, we added a wrapper that compute one single SDC path. It creates and injects a SDC path each time a scenario is resetted. It adds significant compute time and the SDC path created is not always precise and doesn't necesserqly folloz the ground truth.
-
+For those who prefer to run V-Max without the complete ScenarioMax integration, a lightweight wrapper is available. This wrapper generates one single SDC path at every scenario reset. Keep in mind that while this approach simplifies testing, it increases computational overhead and may not always produce an SDC path that perfectly matches the ground truth.
 
 
 ## Installation
@@ -154,43 +172,10 @@ Enhance V-Max by implementing new algorithms, network architectures, or observat
 
 Follow these guidelines to extend V-Max with your custom components.
 
-## Videos
-
-<div style="display: flex; justify-content: center;">
-  <div style="flex: 1; text-align: center;">
-    <h3>Expert</h3>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/expert/scene1.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/expert/scene2.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/expert/scene3.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/expert/scene4.mp4" type="video/mp4">
-    </video>
-  </div>
-  <div style="flex: 1; text-align: center;">
-    <h3>RL Agent</h3>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/agent/scene1.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/agent/scene2.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/agent/scene3.mp4" type="video/mp4">
-    </video>
-    <video width="100%" controls>
-      <source src="./docs/assets/trajectories/agent/scene4.mp4" type="video/mp4">
-    </video>
-  </div>
-</div>
 
 ## Roadmap
 
+TBD
 
 ## Acknowledgements
 
