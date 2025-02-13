@@ -89,6 +89,8 @@ Key objectives:
 
 For those who prefer to run V-Max without the complete ScenarioMax integration, a lightweight wrapper is available. This wrapper generates one single SDC path at every scenario reset. Keep in mind that while this approach simplifies testing, it increases computational overhead and may not always produce an SDC path that perfectly matches the ground truth.
 
+**Mini datasets (around 1000 scenarios each) are provided in the release section for nuPlan and WOMD, containing the ScenarioMax changes**
+
 
 ## Installation
 
@@ -113,7 +115,7 @@ For those who prefer to run V-Max without the complete ScenarioMax integration, 
 Trainings of any RL/IL algorithms and network encoders implemented in V-Max can be run with the following command:
 
 ```bash
-python vmax/scripts/train.py total_timesteps=$num_env_steps path_dataset="" path_dataset_eval="" algorithm=$alg_type network/encoder=$encoder_type
+python vmax/scripts/training/train.py total_timesteps=$num_env_steps path_dataset="" algorithm=$alg_type network/encoder=$encoder_type
 ```
 
 Please refer to the documentation `docs/training.md` for a deeper usage of trainings with choice of features for observation, reward metrics selection, and specific training configurations.

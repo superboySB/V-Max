@@ -9,36 +9,70 @@ from vmax.scripts.training.train_utils import str2bool
 from vmax.simulator import datasets, make_data_generator
 
 
-os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.5"
 os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 
 
 def parse_eval_args():
     """Parse command-line arguments for evaluation."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--algorithm", "-a", type=str, default="none")  # sac, bc, ppo
+    parser = argparse.ArgumentParser(description="Evaluation script arguments")
     parser.add_argument(
         "--sdc_actor",
         "-sdc",
         type=str,
         default="expert",
-    )  # ai, expert, random, constant, constant_speed
-    parser.add_argument("--max_num_objects", "-o", type=int, default=64)
+        help="Actor type: 'ai' for learned policy, otherwise rule-based (default: expert)",
+    )
+    parser.add_argument(
+        "--max_num_objects",
+        "-o",
+        type=int,
+        default=64,
+        help="Maximum number of objects in the scene (default: 64)",
+    )
     parser.add_argument(
         "--scenario_indexes",
         "-si",
         nargs="*",
         type=int,
         default=None,
+        help="Optional list of scenario indexes to evaluate",
     )
-
-    parser.add_argument("--render", "-r", type=str2bool, default=False)
-    parser.add_argument("--sdc_pov", "-pov", type=str2bool, default=False)
-    parser.add_argument("--path_dataset", "-pd", type=str, default="local_womd_valid")
-    parser.add_argument("--path_model", "-pm", type=str, default="SAC_MTR_CI")
-    parser.add_argument("--eval_name", "-en", type=str, default="benchmark")
-    parser.add_argument("--noisy_init", "-ni", type=str2bool, default=False)
-
+    parser.add_argument("--render", "-r", type=str2bool, default=False, help="Render the evaluation (default: False)")
+    parser.add_argument(
+        "--sdc_pov",
+        "-pov",
+        type=str2bool,
+        default=False,
+        help="Render from self-driving car's point of view (default: False)",
+    )
+    parser.add_argument(
+        "--path_dataset",
+        "-pd",
+        type=str,
+        default="local_womd_valid",
+        help="Path to the dataset (default: local_womd_valid)",
+    )
+    parser.add_argument(
+        "--path_model",
+        "-pm",
+        type=str,
+        default="SAC_MTR_CI",
+        help="Identifier of the model to evaluate",
+    )
+    parser.add_argument(
+        "--eval_name",
+        "-en",
+        type=str,
+        default="benchmark",
+        help="Base evaluation directory name or identifier",
+    )
+    parser.add_argument(
+        "--noisy_init",
+        "-ni",
+        type=str2bool,
+        default=False,
+        help="Flag to enable noisy initialization (default: False)",
+    )
     return parser
 
 
@@ -47,8 +81,10 @@ def run_evaluation(
     data_generator,
     step_fn,
     run_path: str = "",
-    eval_args: dict | None = None,
+    scenario_indexes: list | None = None,
     termination_keys: list | None = None,
+    render: bool = False,
+    render_pov: bool = False,
 ):
     """Evaluate the model over multiple episodes and store the results.
 
@@ -61,65 +97,56 @@ def run_evaluation(
         termination_keys: List of keys that determine episode termination.
 
     """
+    # JIT compile the step function and reset for speed.
     jitted_step_fn = jax.jit(step_fn)
     jitted_reset = jax.jit(env.reset)
+
     rng_key = jax.random.PRNGKey(0)
     eval_metrics = {"episode_length": [], "accuracy": []}
     start_time_total = time.time()
 
-    for ind_scenario, scenario in enumerate(data_generator):
-        if eval_args.scenario_indexes is not None and ind_scenario not in eval_args.scenario_indexes:
+    for idx, scenario in enumerate(data_generator):
+        # Skip scenarios if scenario_indexes is provided.
+        if scenario_indexes is not None and idx not in scenario_indexes:
             continue
 
+        # Reset environment for the new scenario.
         env_transition = jitted_reset(scenario)
         list_images = []
         done = False
         episode_metrics = {}
 
-        if eval_args.render:
-            img = utils.plot_scene(
-                env,
-                env_transition,
-                eval_args.sdc_pov,
-            )
-            list_images.append(img)
+        if render:
+            list_images.append(utils.plot_scene(env, env_transition, render_pov))
 
+        # Step until the episode ends.
         while not done:
             rng_key, step_key = jax.random.split(rng_key)
-            env_transition, rl_transition = jitted_step_fn(env_transition, key=step_key)
+            env_transition, transition = jitted_step_fn(env_transition, key=step_key)
 
-            done = rl_transition.done
+            done = transition.done
 
+            # Collect episode metrics.
             for key, value in env_transition.metrics.items():
                 if key not in episode_metrics:
                     episode_metrics[key] = []
                 episode_metrics[key].append(value)
 
-            if eval_args.render:
-                img = utils.plot_scene(
-                    env,
-                    env_transition,
-                    eval_args.sdc_pov,
-                )
-                list_images.append(img)
+            if render:
+                list_images.append(utils.plot_scene(env, env_transition, render_pov))
 
-        eval_metrics = utils.append_episode_metrics(
-            env_transition,
-            eval_metrics,
-            episode_metrics,
-            termination_keys,
-        )
-        if eval_args.render:
-            utils.write_video(run_path, list_images, ind_scenario)
+        # Aggregate metrics for the episode.
+        eval_metrics = utils.append_episode_metrics(env_transition, eval_metrics, episode_metrics, termination_keys)
 
-    # Average metrics
-    eval_results = ind_scenario + 1, eval_metrics
-    utils.write_generator_result(run_path, eval_results)
+        if render:
+            utils.write_video(run_path, list_images, idx)
 
-    print(f"Duration eval {ind_scenario + 1} episodes is ", time.time() - start_time_total)
+    # Write aggregated evaluation results.
+    utils.write_generator_result(run_path, idx + 1, eval_metrics)
+    print(f"Duration eval {idx + 1} episodes is ", time.time() - start_time_total)
 
 
-if __name__ == "__main__":
+def main():
     parser = parse_eval_args()
     eval_args = parser.parse_args()
 
@@ -135,15 +162,24 @@ if __name__ == "__main__":
 
     env, step_fn, eval_path, termination_keys = utils.setup_evaluation(
         dummy_scenario,
-        eval_args,
-        sdc_paths_from_data=True,
+        eval_args.sdc_actor,
+        eval_args.path_model,
+        eval_args.path_dataset,
+        eval_args.eval_name,
+        eval_args.max_num_objects,
+        eval_args.noisy_init,
     )
-
     run_evaluation(
         env,
         data_generator,
         step_fn,
         eval_path,
-        eval_args,
+        eval_args.scenario_indexes,
         termination_keys,
+        eval_args.render,
+        eval_args.sdc_pov,
     )
+
+
+if __name__ == "__main__":
+    main()
