@@ -59,14 +59,12 @@ def transform_sdc_paths(paths: route.Paths, pose2d: ObjectPose2D) -> route.Paths
 def transform_observation(
     observation: Observation,
     pose2d: ObjectPose2D,
-    meters_box: dict | None = None,
 ) -> Observation:
     """Transform a Observation into coordinates specified by pose2d.
 
     Args:
       observation: Has shape (..., num_observations)
       pose2d: Has shape (..., num_observations)
-      meters_box: A dictionary containing the front, back, left, and right meters
 
     Returns:
       Transformed observation in local coordinates per-observation defined by the
@@ -81,36 +79,6 @@ def transform_observation(
     transf_rg = transform_roadgraph_points(observation.roadgraph_static_points, pose)
     transf_traj = transform_trajectory(observation.trajectory, pose)
     transf_tls = transform_traffic_lights(observation.traffic_lights, pose)
-
-    if meters_box is not None:
-        max_x = meters_box["front"]
-        min_x = -meters_box["back"]
-        max_y = meters_box["left"]
-        min_y = -meters_box["right"]
-
-        valid_traj = jnp.logical_and(
-            jnp.logical_and(
-                transf_traj.x >= min_x,
-                transf_traj.x <= max_x,
-            ),
-            jnp.logical_and(
-                transf_traj.y >= min_y,
-                transf_traj.y <= max_y,
-            ),
-        )
-        valid_tls = jnp.logical_and(
-            jnp.logical_and(
-                transf_tls.x >= min_x,
-                transf_tls.x <= max_x,
-            ),
-            jnp.logical_and(
-                transf_tls.y >= min_y,
-                transf_tls.y <= max_y,
-            ),
-        )
-
-        transf_traj = transf_traj.replace(valid=valid_traj)
-        transf_tls = transf_tls.replace(valid=valid_tls)
 
     if observation.sdc_paths is not None:
         transf_sdc_paths = transform_sdc_paths(observation.sdc_paths, pose)
@@ -211,7 +179,7 @@ def sdc_observation_from_state(
     if coordinate_frame in (config.CoordinateFrame.OBJECT, config.CoordinateFrame.SDC):
         pose2d = ObjectPose2D.from_center_and_yaw(xy=sdc_xy, yaw=sdc_yaw, valid=sdc_valid)
         chex.assert_equal(pose2d.shape, state.shape + (1,))
-        return transform_observation(global_obs_filter, pose2d, meters_box)
+        return transform_observation(global_obs_filter, pose2d)
     elif coordinate_frame == config.CoordinateFrame.GLOBAL:
         return global_obs_filter
     else:
