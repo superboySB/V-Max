@@ -153,7 +153,7 @@ def make_env_for_evaluation(
     reward_type: str = "",
     reward_config: dict | None = None,
     termination_keys: list[str] = ("offroad", "overlap"),
-    noisy_init: bool = True,
+    noisy_init: bool = False,
 ) -> env.PlanningAgentEnvironment:
     """Create an environment configured for evaluation.
 

@@ -73,6 +73,13 @@ def parse_eval_args():
         default=False,
         help="Flag to enable noisy initialization (default: False)",
     )
+    parser.add_argument(
+        "--src_dir",
+        "-sd",
+        type=str,
+        default="runs",
+        help="Source directory for evaluation results (default: runs)",
+    )
     return parser
 
 
@@ -164,6 +171,7 @@ def main():
         dummy_scenario,
         eval_args.sdc_actor,
         eval_args.path_model,
+        eval_args.src_dir,
         eval_args.path_dataset,
         eval_args.eval_name,
         eval_args.max_num_objects,

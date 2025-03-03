@@ -27,6 +27,7 @@ def setup_evaluation(
     dummy_scenario,
     policy_type: str,
     path_model: str,
+    source_dir: str,
     path_dataset: str,
     eval_name: str,
     max_num_objects: int,
@@ -39,6 +40,7 @@ def setup_evaluation(
         dummy_scenario: Scenario used for environment initialization.
         policy_type: The type of policy to evaluate.
         path_model: Identifier of the model to evaluate.
+        source_dir: Source directory for evaluation results.
         path_dataset: Path to the dataset.
         eval_name: Name of the evaluation.
         max_num_objects: Maximum number of objects in the scene.
@@ -51,10 +53,12 @@ def setup_evaluation(
     """
 
     if policy_type == "ai":
-        run_path = f"runs/{path_model}/"
+        run_path = f"{source_dir}/{path_model}/"
         model_path, model_name = get_model_path(run_path + "model/")
 
-        eval_path = f"{eval_name}/ai/{path_dataset}/{run_path.replace('runs/', '')}{model_name.replace('.pkl', '')}/"
+        eval_path = (
+            f"{eval_name}/ai/{path_dataset}/{run_path.replace(f'{source_dir}/', '')}{model_name.replace('.pkl', '')}/"
+        )
 
         # Training config
         with open(run_path + ".hydra/config.yaml", "r") as f:  # noqa: UP015
