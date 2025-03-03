@@ -14,4 +14,4 @@ cross_head_features: 16
 ff_mult: 2
 attn_dropout: 0.0
 ff_dropout: 0.0
-tie_layer_weights: false
+tie_layer_weights: true

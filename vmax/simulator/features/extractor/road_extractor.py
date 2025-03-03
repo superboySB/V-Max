@@ -38,8 +38,6 @@ class RoadFeaturesExtractor(extractor.BaseFeaturesExtractor):
             path_target_config,
         )
 
-        self._dict_mapping["types"] = (0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 0, 0, 0, 0)
-
     def _filter(self, roadgraph: datatypes.RoadgraphPoints) -> jax.Array:
         """Determine lane center points based on road element types.
 
@@ -50,15 +48,6 @@ class RoadFeaturesExtractor(extractor.BaseFeaturesExtractor):
             A boolean array marking the indices of the lane center points.
 
         """
-        return (
-            (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_BROKEN_SINGLE_WHITE)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_SOLID_SINGLE_WHITE)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_SOLID_DOUBLE_WHITE)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_BROKEN_SINGLE_YELLOW)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_BROKEN_DOUBLE_YELLOW)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_SOLID_SINGLE_YELLOW)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_SOLID_DOUBLE_YELLOW)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_LINE_PASSING_DOUBLE_YELLOW)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_EDGE_BOUNDARY)
-            | (roadgraph.types == datatypes.MapElementIds.ROAD_EDGE_MEDIAN)
+        return (roadgraph.types == datatypes.MapElementIds.ROAD_EDGE_BOUNDARY) | (
+            roadgraph.types == datatypes.MapElementIds.ROAD_EDGE_MEDIAN
         )

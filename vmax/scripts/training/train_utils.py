@@ -6,13 +6,11 @@
 import logging
 import os
 import pickle
-import textwrap
 from argparse import ArgumentParser
 from datetime import datetime
 from typing import Any
 
 import jax
-import psutil
 from etils import epath
 from tensorboardX import SummaryWriter
 
@@ -25,7 +23,6 @@ logger = logging.getLogger(__name__)
 def resolve_output_dir(
     algorithm_name: str,
     observation_type: str,
-    reward_type: str,
     encoder_config: dict,
     name_run: str,
     name_exp: str,
@@ -47,7 +44,7 @@ def resolve_output_dir(
     _name_exp = "runs" if name_exp is None else name_exp
 
     if name_run is None:
-        _name_run = f"{algorithm_name.upper()}_{observation_type.upper()}_{reward_type.upper()}"
+        _name_run = f"{algorithm_name.upper()}_{observation_type.upper()}"
 
         encoder_type = encoder_config["type"]
         if encoder_type != "none":
@@ -57,11 +54,7 @@ def resolve_output_dir(
     else:
         _name_run = name_run
 
-    output_dir = f"{_name_exp}/{_name_run}"
-
-    logger.info(f"Output directory: {output_dir}")
-
-    return output_dir
+    return f"{_name_exp}/{_name_run}"
 
 
 def apply_xla_flags(config: dict) -> None:
@@ -91,7 +84,6 @@ def apply_xla_flags(config: dict) -> None:
 def log_metrics(
     num_steps: int | None = None,
     metrics: dict | None = None,
-    current_step: int | None = None,
     total_timesteps: int | None = None,
     writer: SummaryWriter = None,
 ) -> None:
@@ -105,8 +97,8 @@ def log_metrics(
         writer: TensorBoard summary writer.
 
     """
-    if current_step is not None or total_timesteps is not None:
-        logger.info(f"-> Step {current_step}/{total_timesteps} - {(current_step / total_timesteps) * 100:.2f}%")
+    if total_timesteps is not None:
+        logger.info(f"-> Step {num_steps}/{total_timesteps} - {(num_steps / total_timesteps) * 100:.2f}%")
         logger.info(f"-> Data time     : {metrics['runtime/data_time']:.2f}s")
         logger.info(f"-> Training time : {metrics['runtime/training_time']:.2f}s")
         logger.info(f"-> Log time      : {metrics['runtime/log_time']:.2f}s")
@@ -179,45 +171,25 @@ def build_config_dicts(config: dict) -> tuple[dict, dict]:
     return env_config, run_config
 
 
-def get_memory_usage() -> float:
-    """Retrieve the current process memory usage in GiB."""
-    process = psutil.Process(os.getpid())
-    return process.memory_info().rss / 1024**3
-
-
-def print_hyperparameters(params: dict, name: str = "", count: int = -1) -> None:
+def print_hyperparameters(args: dict) -> None:
     """Print hyperparameters in a structured and readable format.
 
     Args:
-        params: Dictionary of hyperparameters.
-        name: Optional name of the hyperparameters.
-        count: Indentation level.
+        args: Dictionary of hyperparameters.
 
     """
-
-    def _indent_str(count: int) -> str:
-        return " " * 4 * count
-
-    title = f"{name}".center(50, "=") if count <= 0 else f"{_indent_str(count - 1)}- {name}"
-    print(title)
-
-    for key, value in params.items():
-        if isinstance(value, dict):
-            print_hyperparameters(value, name=key, count=count + 1)
-        else:
-            value_str = str(value)
-            wrapped_value = textwrap.fill(value_str, width=70, subsequent_indent=_indent_str(count + 1))
-            print(f"{_indent_str(count)}{key}: {wrapped_value}")
+    print(" Experiment Summary ".center(40, "="))
+    print(f"- Algorithm          : {args['algorithm']['name']}")
+    print(f"- Observation Type   : {args['observation_type']}")
+    print(f"- Dataset Path       : {args['path_dataset']}")
+    print(f"- Total Timesteps    : {args['total_timesteps']}")
 
 
 def get_and_print_device_info() -> int:
     """Display and return the count of local JAX devices."""
-    print("device".center(50, "="))
-    print(f"jax.local_devices_to_use: {jax.local_device_count()}")
-    print(f"jax.default_backend(): {jax.default_backend()}")
-    print(f"jax.local_devices(): {jax.local_devices()}")
-
-    return jax.local_device_count()
+    print(" Devices ".center(40, "="))
+    print(f"- Backend: {jax.default_backend()}")
+    print(f"- Devices: {jax.local_device_count()} -> {jax.local_devices()}")
 
 
 def save_params(path: str, params: Any) -> None:

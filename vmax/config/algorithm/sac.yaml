@@ -15,12 +15,12 @@ learning_start: 50_000
 
 network:
   policy:
-    layer_sizes: [256, 64]
+    layer_sizes: [256, 64, 32]
     activation: relu  # gelu, relu, selu
     final_activation: null
 
   value:
-    layer_sizes: [256, 64]
+    layer_sizes: [256, 64, 32]
     activation: relu  # gelu, relu, selu
     final_activation: relu  # tanh, relu
     num_networks: 2

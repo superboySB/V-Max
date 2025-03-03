@@ -250,7 +250,9 @@ def plot_simulator_state(
 
     viz_config = waymax_utils.VizConfig() if viz_config is None else waymax_utils.VizConfig(**viz_config)
 
-    if ax is None:
+    create_fig = ax is None
+
+    if create_fig:
         fig, ax = waymax_utils.init_fig_ax(viz_config)
 
     # 1. Plots trajectory.
@@ -300,7 +302,7 @@ def plot_simulator_state(
     if plot_sdc_paths:
         waymax_viz._plot_path_points(ax, state.sdc_paths)
 
-    if ax is None:
+    if create_fig:
         return waymax_utils.img_from_fig(fig)
 
 
@@ -338,7 +340,9 @@ def plot_observation(
 
     viz_config = waymax_utils.VizConfig() if viz_config is None else waymax_utils.VizConfig(**viz_config)
 
-    if ax is None:
+    create_fig = ax is None
+
+    if create_fig:
         fig, ax = waymax_utils.init_fig_ax(viz_config)
 
     # 1. Plots trajectory.
@@ -394,5 +398,5 @@ def plot_observation(
         ),
     )
 
-    if ax is None:
+    if create_fig:
         return waymax_utils.img_from_fig(fig)

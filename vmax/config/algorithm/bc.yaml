@@ -8,12 +8,12 @@ learning_rate: 1e-4
 batch_size: 64
 grad_updates_per_step: 8
 loss_type: mse  # options: 'mae', 'mse'
-buffer_size: 500_000
+buffer_size: 1_000_000
 
 network:
   policy:
     type: mlp
-    layer_sizes: [256, 256]
+    layer_sizes: [256, 64, 32]
     activation: relu  # gelu, relu, selu
     final_activation: tanh
   value:

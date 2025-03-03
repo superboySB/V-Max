@@ -84,48 +84,7 @@ class RewardCustomWrapper(environment.Wrapper):
         """
 
 
-def _compute_log_divergence_reward(state: datatypes.SimulatorState, weight: float = 1.0) -> jax.Array:
-    """Compute reward based on log divergence.
-
-    Args:
-        state: Current simulator state.
-        weight: Multiplier for the reward.
-
-    Returns:
-        Computed reward.
-
-    """
-    log_divergence = waymax_metrics.LogDivergenceMetric().compute(state).value
-    log_divergence = jnp.sum(log_divergence, axis=-1)
-
-    return log_divergence * weight
-
-
-def _compute_log_divergence_clip_reward(
-    state: datatypes.SimulatorState,
-    threshold: float = 0.3,
-    bonus: float = 0.0,
-    penalty: float = 0.0,
-    weight: float = 1.0,
-) -> jax.Array:
-    """Compute reward using a clipped log divergence.
-
-    Args:
-        state: Current simulator state.
-        threshold: Distance threshold.
-        bonus: Reward when within the threshold.
-        penalty: Penalty if beyond the threshold.
-        weight: Multiplier for the reward.
-
-    Returns:
-        Computed reward.
-
-    """
-    log_divergence = waymax_metrics.LogDivergenceMetric().compute(state).value
-    log_divergence = jnp.sum(log_divergence, axis=-1)
-    log_divergence_reward = jnp.where(log_divergence > threshold, penalty, bonus)
-
-    return log_divergence_reward * weight
+## TERMINATION REWARD FUNCTIONS
 
 
 def _compute_overlap_reward(
@@ -184,6 +143,73 @@ def _compute_offroad_reward(
     return reward_offroad * weight
 
 
+def _compute_red_light_reward(state: datatypes.SimulatorState, penalty: float = -1.0, weight: float = 1.0) -> float:
+    """Compute a reward penalizing red light violations.
+
+    Args:
+        state: Current simulator state.
+        penalty: Penalty value.
+        weight: Multiplier for the reward.
+
+    Returns:
+        Computed reward.
+
+    """
+    has_runned_red_light = metrics.RunRedLightMetric().compute(state).value
+
+    red_light_reward = has_runned_red_light * penalty
+
+    return red_light_reward * weight
+
+
+## DENSE REWARD FUNCTIONS
+
+
+def _compute_log_divergence_reward(state: datatypes.SimulatorState, weight: float = 1.0) -> jax.Array:
+    """Compute reward based on log divergence.
+
+    Args:
+        state: Current simulator state.
+        weight: Multiplier for the reward.
+
+    Returns:
+        Computed reward.
+
+    """
+    log_divergence = waymax_metrics.LogDivergenceMetric().compute(state).value
+    log_divergence = jnp.sum(log_divergence, axis=-1)
+
+    return log_divergence * weight
+
+
+def _compute_log_divergence_clip_reward(
+    state: datatypes.SimulatorState,
+    threshold: float = 0.3,
+    bonus: float = 0.0,
+    penalty: float = 0.0,
+    weight: float = 1.0,
+) -> jax.Array:
+    """Compute reward using a clipped log divergence.
+
+    Args:
+        state: Current simulator state.
+        threshold: Distance threshold.
+        bonus: Reward when within the threshold.
+        penalty: Penalty if beyond the threshold.
+        weight: Multiplier for the reward.
+
+    Returns:
+        Computed reward.
+
+    """
+    log_divergence = waymax_metrics.LogDivergenceMetric().compute(state).value
+    log_divergence = jnp.sum(log_divergence, axis=-1)
+
+    log_divergence_reward = jnp.where(log_divergence > threshold, penalty, bonus)
+
+    return log_divergence_reward * weight
+
+
 def _compute_ttc_reward(
     state: datatypes.SimulatorState,
     threshold: float = 1.5,
@@ -211,29 +237,7 @@ def _compute_ttc_reward(
     return ttc_reward * weight
 
 
-def _compute_red_light_reward(state: datatypes.SimulatorState, penalty: float = -1.0, weight: float = 1.0) -> float:
-    """Compute a reward penalizing red light violations.
-
-    Args:
-        state: Current simulator state.
-        penalty: Penalty value.
-        weight: Multiplier for the reward.
-
-    Returns:
-        Computed reward.
-
-    """
-    has_runned_red_light = metrics.RunRedLightMetric().compute(state).value
-
-    sdc_idx = operations.get_index(state.object_metadata.is_sdc)
-    ego_speed = state.current_sim_trajectory.speed[sdc_idx].squeeze()
-
-    red_light_reward = has_runned_red_light * (penalty - ego_speed)
-
-    return red_light_reward * weight
-
-
-def _compute_comfort_reward(state: datatypes.SimulatorState, weight: float = 1.0) -> float:
+def _compute_comfort_reward(state: datatypes.SimulatorState, weight: float = 1.0, penalty: float = -1.0) -> float:
     """Compute a comfort-related reward.
 
     Args:
@@ -244,8 +248,9 @@ def _compute_comfort_reward(state: datatypes.SimulatorState, weight: float = 1.0
         Computed reward.
 
     """
-    comfort_metric_reward = metrics.ComfortMetric().compute(state).value
-    return comfort_metric_reward * weight
+    comfort_metric_reward_2 = metrics.ComfortMetric().compute_reward(state).value
+
+    return comfort_metric_reward_2 * weight
 
 
 def _compute_speed_limit_reward(
@@ -271,7 +276,7 @@ def _compute_speed_limit_reward(
     ego_speed = state.current_sim_trajectory.speed[sdc_idx].squeeze()
 
     reward = bonus * (jnp.abs(ego_speed) / speed_limit)
-    speed_limit_reward = jnp.where(ego_speed > speed_limit, penalty, reward)
+    speed_limit_reward = jnp.where(ego_speed > speed_limit + 2.23, penalty, reward)
 
     return speed_limit_reward * weight
 
@@ -295,11 +300,8 @@ def _compute_driving_direction_reward(
 
     """
     driving_direction_metric = metrics.DrivingDirectionComplianceMetric().compute(state).value
-    driving_direction_reward = jnp.where(
-        driving_direction_metric > 0,
-        penalty,
-        bonus,
-    )
+    driving_direction_reward = jnp.where(driving_direction_metric > 0, penalty, bonus)
+
     return driving_direction_reward * weight
 
 
@@ -353,13 +355,20 @@ def _compute_making_progress_reward(
     n_state = state.replace(timestep=state.timestep - 1)
     previous_progression = waymax_metrics.ProgressionMetric().compute(n_state).value
 
-    making_progress_reward = jnp.where(
-        current_progression > previous_progression,
-        bonus,
-        penalty,
-    )
+    making_progress_reward = jnp.where(current_progression > previous_progression, bonus, penalty)
 
     return making_progress_reward * weight
+
+
+def _compute_off_route_reward(
+    state: datatypes.SimulatorState,
+    penalty: float = -1.0,
+    weight: float = 1.0,
+):
+    # Waymax offroute's score: 0 if you're on-route, distance to route if you're offroute
+    off_route_score = metrics.OffRouteMetric().compute(state).value
+
+    return (off_route_score > 0) * weight * penalty
 
 
 def _get_reward_fn(reward_name: str) -> callable:
@@ -377,6 +386,7 @@ def _get_reward_fn(reward_name: str) -> callable:
         "log_div": _compute_log_divergence_reward,
         "overlap": _compute_overlap_reward,
         "offroad": _compute_offroad_reward,
+        "off_route": _compute_off_route_reward,
         "ttc": _compute_ttc_reward,
         "red_light": _compute_red_light_reward,
         "comfort": _compute_comfort_reward,
