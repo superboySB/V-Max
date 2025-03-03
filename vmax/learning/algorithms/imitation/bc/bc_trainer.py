@@ -49,6 +49,7 @@ def train(
     network_config: dict,
     progress_fn: Callable[[int, datatypes.Metrics], None] = lambda *args: None,
     checkpoint_logdir: str = "",
+    disable_tqdm: bool = False,
 ) -> None:
     """Train a Behavioral Cloning (BC) model.
 
@@ -75,20 +76,22 @@ def train(
         network_config: Configuration dictionary for the model network.
         progress_fn: Callback function for reporting progress.
         checkpoint_logdir: Directory path for storing checkpoints.
+        disable_tqdm: Flag to disable tqdm progress bar.
 
     """
+    print(" BC ".center(40, "="))
+
     rng = jax.random.PRNGKey(seed)
     num_devices = jax.local_device_count()
 
     do_save = save_freq > 1 and checkpoint_logdir is not None
     do_evaluation = eval_freq >= 1
 
-    start_memory = train_utils.get_memory_usage()
-
     num_steps = num_episode_per_epoch * scenario_length
     env_steps_per_iter = num_steps * num_envs
     total_iters = (total_timesteps // env_steps_per_iter) + 1
 
+    print("-> Pulling first scenario...")
     dummy_scenario = next(data_generator)
     dummy_scenario = jax.tree.map(lambda x: x[dummy_scenario.shape[:-1]], dummy_scenario)
 
@@ -99,12 +102,11 @@ def train(
     observation_size = env.observation_spec(dummy_scenario.state)
     action_size = env.action_spec().data.shape[0]
 
-    print("shape check".center(50, "="))
-    print(f"observation size: {observation_size}")
-    print(f"action size: {action_size}")
+    print(f"-> Pulling first scenario... Done. Observation size: {observation_size}")
 
     rng, network_key = jax.random.split(rng)
 
+    print("-> Initializing networks...")
     network, training_state, policy_fn = bc.initialize(
         action_size,
         observation_size,
@@ -120,7 +122,7 @@ def train(
     replay_buffer = ReplayBuffer(
         buffer_size=buffer_size // num_devices,
         batch_size=batch_size * grad_updates_per_step // num_devices,
-        samples_size=num_envs // num_devices,
+        samples_size=num_envs,
         dummy_data_sample=datatypes.RLPartialTransition(
             observation=jnp.zeros((observation_size,)),
             action=jnp.zeros((action_size,)),
@@ -129,6 +131,7 @@ def train(
             done=0,
         ),
     )
+    print("-> Initializing networks... Done.")
 
     unroll_fn = partial(
         action.generate_unroll,
@@ -161,17 +164,12 @@ def train(
     rng, rb_key = jax.random.split(rng)
     buffer_state = jax.pmap(replay_buffer.init)(jax.random.split(rb_key, num_devices))
 
-    current_memory = train_utils.get_memory_usage()
-    print(f"Memory usage: {current_memory:.2f} MB")
-    print(f"Memory usage increase: {(current_memory - start_memory) / 1024**3:.2f} GB")
-    start_memory = current_memory
-
     time_training = perf_counter()
 
     current_step = 0
 
-    print("training".center(50, "="))
-    for iter in tqdm(range(total_iters), desc="Training", total=total_iters, dynamic_ncols=True):
+    print("-> Ground Control to Major Tom...")
+    for iter in tqdm(range(total_iters), desc="Training", total=total_iters, dynamic_ncols=True, disable=disable_tqdm):
         rng, iter_key = jax.random.split(rng)
         iter_keys = jax.random.split(iter_key, num_devices)
 
@@ -223,7 +221,6 @@ def train(
         epoch_eval_time = perf_counter() - t
 
         if not iter % log_freq:
-            metrics["runtime/memory_usage"] = train_utils.get_memory_usage()
             metrics["runtime/data_time"] = epoch_data_time
             metrics["runtime/training_time"] = epoch_training_time
             metrics["runtime/log_time"] = epoch_log_time
@@ -231,7 +228,10 @@ def train(
             metrics["runtime/iter_time"] = epoch_data_time + epoch_training_time + epoch_log_time + epoch_eval_time
             metrics["runtime/wall_time"] = perf_counter() - time_training
 
-            progress_fn(current_step, metrics, current_step, total_timesteps)
+            progress_fn(current_step, metrics, total_timesteps)
+
+            if disable_tqdm:
+                print(f"-> Step {current_step}/{total_timesteps} - {(current_step / total_timesteps) * 100:.2f}%")
 
     print(f"-> Training took {perf_counter() - time_training:.2f}s")
     assert current_step >= total_timesteps

@@ -4,6 +4,7 @@
 """Script to run the training process."""
 
 import os
+import sys
 from functools import partial
 
 import hydra
@@ -29,8 +30,8 @@ def run(cfg: DictConfig) -> None:
     config = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
 
     train_utils.apply_xla_flags(config)
-    train_utils.print_hyperparameters(config, "args")
-    num_devices = train_utils.get_and_print_device_info()
+    train_utils.print_hyperparameters(config)
+    train_utils.get_and_print_device_info()
 
     env_config, run_config = train_utils.build_config_dicts(config)
 
@@ -39,7 +40,7 @@ def run(cfg: DictConfig) -> None:
         path=env_config["path_dataset"],
         max_num_objects=env_config["max_num_objects"],
         include_sdc_paths=env_config["sdc_paths_from_data"],
-        batch_dims=(env_config["num_envs"] // num_devices, env_config["num_episode_per_epoch"]),
+        batch_dims=(env_config["num_envs"], env_config["num_episode_per_epoch"]),
         seed=env_config["seed"],
         distributed=True,
     )
@@ -69,12 +70,13 @@ def run(cfg: DictConfig) -> None:
         termination_keys=env_config["termination_keys"],
     )
 
-    run_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    absolute_run_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    relative_run_path = "/".join(absolute_run_path.split("/")[-2:])
 
-    model_path = os.path.join(run_path, "model")
+    model_path = os.path.join(relative_run_path, "model")
     os.makedirs(model_path, exist_ok=True)
 
-    writer = train_utils.setup_tensorboard(run_path)
+    writer = train_utils.setup_tensorboard(relative_run_path)
     progress = partial(train_utils.log_metrics, writer=writer)
 
     ## TRAINING
@@ -87,6 +89,7 @@ def run(cfg: DictConfig) -> None:
         **run_config,
         progress_fn=progress,
         checkpoint_logdir=model_path,
+        disable_tqdm=not sys.stdout.isatty(),
     )
 
 
