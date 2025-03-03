@@ -84,13 +84,13 @@ vmax
 **ScenarioMax** is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
 
 Key objectives:
+
 - **Enrich Data:** By incorporating SDC paths, ScenarioMax helps improve the precision of target computations, reward evaluations, and metric calculations.
 - **Unified Dataset:** It consolidates data from different autonomous driving (AD) datasets into a single, standardized format, similar to the approaches found in [ScenarioNet](https://github.com/metadriverse/scenarionet).
 
 For those who prefer to run V-Max without the complete ScenarioMax integration, a lightweight wrapper is available. This wrapper generates one single SDC path at every scenario reset. Keep in mind that while this approach simplifies testing, it increases computational overhead and may not always produce an SDC path that perfectly matches the ground truth.
 
 **Mini datasets (around 1000 scenarios each) are provided in the release section for nuPlan and WOMD, containing the ScenarioMax changes**
-
 
 ## Installation
 
@@ -123,14 +123,17 @@ Please refer to the documentation `docs/training.md` for a deeper usage of train
 ## Simulator Workflow
 
 1. **Initialization**
+
 - Load a new scenario from a data generator.
 - Reset the simulation environment, initializing internal state, roadgraph, and trajectories.
 
 2. **Interaction**
+
 - The step function updates the simulation state using both physics and dynamics models.
 - Observation wrappers extract data (GPS, roadgraph features), and action wrappers transform agent decisions into simulation commands.
 
 3. **Training and Evaluation Integration**
+
 - Metrics (e.g., comfort, speed limit, TTC) are computed at every step.
 - Metrics are aggregated and used for reward shaping during training.
 - Evaluation scripts render simulation scenes and compute performance statistics.
@@ -149,12 +152,12 @@ These files allow users to customize:
 - Reward and penalty configurations (e.g., comfort, red light, speed limit)
 - Training parameters (e.g., evaluation frequency, seed, experiment naming)
 
-
 ## Play with V-Max
 
 Enhance V-Max by implementing new algorithms, network architectures, or observation methods. Follow the steps below for each component:
 
 ### New Algorithm
+
 1. Create a new config file in the `vmax/config/algorithms/` folder (e.g., `vmax/config/algorithms/new_alg.yaml`).
 2. Implement the algorithm in `vmax/learning/algorithms/` by adding:
    - A `factory.py` file.
@@ -162,11 +165,13 @@ Enhance V-Max by implementing new algorithms, network architectures, or observat
 3. Register your new class in the appropriate `__init__.py` file to make it available within V-Max.
 
 ### New Network Architecture
+
 1. Create a new config file in the `vmax/config/network/encoder/` folder (e.g., `vmax/config/network/encoder/new_encoder.yaml`).
 2. Build the encoder in `vmax/learning/networks/encoders/`.
 3. Make sure to register your class in the corresponding `__init__.py` file.
 
 ### New Observation
+
 1. Create a new observation wrapper in `vmax/simulator/wrappers/observation/` (e.g., `vmax/simulator/wrappers/observation/new_observation.py`).
 2. If needed, implement a feature extractor in `vmax/simulator/features/extractor/` (e.g., `vmax/simulator/features/extractor/new_extractor.py`). You can inherit from `base_extractor` to reuse existing methods.
 3. Add the new observation to the `_add_observation_wrapper` function in `vmax/simulator/sim_factory.py` so it can be selected in the `base_config.yaml`.
@@ -174,10 +179,15 @@ Enhance V-Max by implementing new algorithms, network architectures, or observat
 
 Follow these guidelines to extend V-Max with your custom components.
 
-
 ## Roadmap
 
 TBD
+
+## Authors
+
+- **[Valentin Charraut](https://github.com/vcharraut)**
+- **[Thomas Tournaire](https://github.com/Titou78)**
+- **[Wael Doulazmi](https://github.com/WaelDLZ)**
 
 ## Acknowledgements
 
@@ -190,4 +200,5 @@ V-Max is built upon the innovative ideas and contributions of several outstandin
 We are grateful to these communities for their contributions to the advancement of autonomous driving research.
 
 ## License
+
 MIT License
