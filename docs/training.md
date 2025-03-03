@@ -3,6 +3,7 @@
 Welcome! This document details the training process along with configuration options for environment, reward functions, observations, and network settings.
 
 We provide more details about how to use in trainings:
+
 - Configuration files (environment parameters, algorithm, network selections)
 - Observation function and features selections
 - Reward function and metrics selections
@@ -12,6 +13,7 @@ We provide more details about how to use in trainings:
 Below are the key configuration files used for training and evaluation.
 
 ### Base Training Configuration
+
 File: `vmax/config/base_config.yaml`
 
 This file sets parameters for training, environment, rewards, and observations.
@@ -44,10 +46,13 @@ Defines dataset paths and environment constraints:
 ### Running Trainings
 
 Execute the training with:
+
 ```
 python vmax/scripts/train.py total_timesteps=$num_env_steps path_dataset="" path_dataset_eval="" algorithm=$alg_type network/encoder=$encoder_type
 ```
+
 Override default parameters directly via command line:
+
 ```
 python vmax/scripts/train.py parameter1_name=$value1 parameter2_name=$value2
 ```
@@ -55,6 +60,7 @@ python vmax/scripts/train.py parameter1_name=$value1 parameter2_name=$value2
 ### Reward Function Configuration
 
 Configure rewards with:
+
 | Parameter            | Description                             | Possible Values         | Default  |
 |----------------------|-----------------------------------------|-------------------------|----------|
 | **reward_type**      | Reward function type                    | `linear`, `custom`      | `linear` |
@@ -98,7 +104,6 @@ Configure rewards with:
 | **path_target**.num_points   | Number of points in the target path               | `10`             | base, road, lane, gt, segment |
 | **path_target**.points_gap   | Gap between points in the target path               | `5`             | base, road, lane, gt, segment |
 
-
 ###### Features for Observations
 
 | Feature                       | Description                                        | Possible Values                                          |
@@ -108,8 +113,6 @@ Configure rewards with:
 | **traffic_lights_features**   | List of traffic light-related features             | `waypoints`, `state`, `valid`                             |
 | **path_target_features**         | List of target path-related features                  | `waypoints`                                               |
 
-
-
 This configuration file provides detailed control over the training, environment, reward, and observation functions, enabling flexibility and customization for autonomous driving research.
 
 ### Additional Configuration Files
@@ -118,6 +121,7 @@ This configuration file provides detailed control over the training, environment
 - **Encoder Configuration:** Located at `vmax/config/network/encoder/$enc_name.yaml`; defines network embedding layers for feature extraction.
 
 #### `vmax/config/algorithm/$alg_name.yaml`
+
 ###### **Example with SAC Algorithm Configuration**
 
 | Parameter               | Description                                      | Possible Values                    | Default         |
@@ -132,6 +136,7 @@ This configuration file provides detailed control over the training, environment
 | **grad_updates_per_step** | Gradient updates per environment step         | *integer*                          | `1`             |
 | **buffer_size**         | Size of the replay buffer                | *integer*                          | `1000000`       |
 | **learning_start**      | Random steps before training begins                     | *integer*                          | `50000`        |
+
 ---
 
 ###### **Policy Network**
@@ -152,11 +157,10 @@ This configuration file provides detailed control over the training, environment
 | **num_networks**        | Number of value networks                         | *integer*                          | `2`             |
 | **shared_encoder**      | Whether policy and value networks share encoder  | `true`, `false`                    | `false`         |
 
-
 ---
 
-
 #### `vmax/config/network/encoder/$enc_name.yaml`
+
 ###### **Example with MGAIL Encoder Configuration**
 
 | Parameter                   | Description                                      | Possible Values                    | Default         |

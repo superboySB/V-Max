@@ -70,6 +70,7 @@ The simulator provides a variety of metrics that can be used both for reward cal
 
 - **Environment Reset**
   The environment is reset using a method like:
+
   ```python
   simulator_state = env.reset(scenario)
 
@@ -79,26 +80,28 @@ This initializes the internal state, roadgraph, and trajectories for the upcomin
 
 - **Step Function**
     After initialization, the environment’s step function is called with an action from the agent. This step updates the simulation state via:
-    - Physics and dynamic models defined in the simulator.
-    - Wrappers that adjust the state and compute new metrics.
-    - The new state is then used as input for the next agent action.
+  - Physics and dynamic models defined in the simulator.
+  - Wrappers that adjust the state and compute new metrics.
+  - The new state is then used as input for the next agent action.
 
 - **Reward & Metrics**
 At every step the simulator computes various metrics (comfort, speed limit violations, etc.) using its metric modules. These metrics are later aggregated for training and logging, as seen in training trainer files like sac_trainer.py.
 
 ### 3. Training and Evaluation Integration
+
 - **Training Loop**
 Trainer scripts (for example, vmax/learning/algorithms/rl/sac/sac_trainer.py) integrate the simulator by:
-    - Collecting batches of scenarios.
-    - Running the simulation steps.
-    - Updating replay buffers and running the learning updates.
-    - Periodically saving model checkpoints based on simulation progress.
+  - Collecting batches of scenarios.
+  - Running the simulation steps.
+  - Updating replay buffers and running the learning updates.
+  - Periodically saving model checkpoints based on simulation progress.
 - Evaluation
 - Separate evaluation scripts (located under vmax/scripts/evaluate/) use the simulator to run episodes with evaluation metrics computed after defined intervals.
 
 ---
 
 ## Configuration
+
 V-Max leverages configuration files managed via Hydra. Key configuration files include:
 
 - Base Config: base_config.yaml
@@ -112,10 +115,10 @@ These files allow users to customize:
 - Reward and penalty metrics settings
 - Learning parameters such as batch size, learning rates, imitation frequency, etc.
 
-
 ---
 
 ## Summary
+
 The V-Max simulator is built as a modular extension of Waymax, with well-defined components for simulating real-world driving scenarios. Its design incorporates:
 
 - Flexible wrappers for environment interactions.

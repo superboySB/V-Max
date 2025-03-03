@@ -7,21 +7,25 @@ This document details the metrics implemented in the [Waymax](https://github.com
 ## Waymax Metrics
 
 ### Log Divergence
+
 - **Type:** Float
 - **Description:**
   Returns the L2 distance between the controlled object's current XY position and its corresponding position in the logged (ground truth) history at the same timestep.
 
 ### Offroad
+
 - **Type:** Boolean
 - **Description:**
   Returns `1.0` if the object is offroad; otherwise, returns `0`.
 
 ### Overlap
+
 - **Type:** Boolean
 - **Description:**
   Determines if the object's bounding box overlaps with that of another object. Returns `1.0` for an overlap, and `0` otherwise.
 
 ### SDC Off Route
+
 - **Type:** Boolean
 - **Description:**
   Evaluates whether the Self-Driving Car (SDC) is off-route based on one of the following conditions:
@@ -30,6 +34,7 @@ This document details the metrics implemented in the [Waymax](https://github.com
   If the SDC is on-route, the trajectory is either completely invalid or there are no valid on-route paths, in which case the metric returns zero. If off-route, it returns the distance to the nearest valid on-route path.
 
 ### SDC Wrongway
+
 - **Type:** Float
 - **Description:**
   Checks if the SDC is driving in the wrong direction.
@@ -37,6 +42,7 @@ This document details the metrics implemented in the [Waymax](https://github.com
   - If this distance exceeds the threshold (`WRONG_WAY_THRES`), the metric returns the distance (representing a wrongway deviation); otherwise, it returns `0.0`.
 
 ### SDC Progression
+
 - **Type:** Float
 - **Description:**
   Measures the progress of the SDC along the intended route. It calculates the arc length between:
@@ -49,31 +55,37 @@ This document details the metrics implemented in the [Waymax](https://github.com
 ## V-max Metrics
 
 ### Time-To-Collision (TTC)
+
 - **Type:** Float
 - **Description:**
   Returns the minimum time-to-collision between the SDC and any object in the scenario, computed over a specified time horizon.
 
 ### Run Red Light
+
 - **Type:** Float
 - **Description:**
   Returns `1.0` if the ego vehicle has run a red light; otherwise, returns `0`.
 
 ### Speed Limit Violation
+
 - **Type:** Float
 - **Description:**
   Measures by how much the ego vehicle's speed exceeds the inferred speed limit (in m/s). Higher values indicate greater violations.
 
 ### Progress Ratio
+
 - **Type:** Float
 - **Description:**
   Computes a normalized progress metric toward the expert (logged) trajectory. Values are scaled relative to the expert’s total route length.
 
 ### On Multiple Lanes
+
 - **Type:** Float
 - **Description:**
   Quantifies lane deviation by combining data on speed and variance in lane-crossing. Higher metric values indicate more frequent or severe deviations.
 
 ### Driving Direction Compliance
+
 - **Type:** Float
 - **Description:**
   Evaluates whether the ego vehicle is driving into oncoming traffic:
@@ -81,6 +93,7 @@ This document details the metrics implemented in the [Waymax](https://github.com
   - A higher value indicates a greater deviation from proper driving direction.
 
 ### Comfort
+
 - **Type:** Boolean
 - **Description:**
   Assesses if the vehicle’s driving dynamics meet comfort criteria under nuPlan standards (including measures such as lateral acceleration, longitudinal acceleration, jerk, and yaw rate/acceleration).
@@ -88,6 +101,7 @@ This document details the metrics implemented in the [Waymax](https://github.com
   - Returns `0` otherwise.
 
 ### At Fault Collision
+
 - **Type:** Float
 - **Description:**
   Computes the number of collisions attributable to the ego vehicle’s actions. A value of `0` indicates no at fault collisions.
