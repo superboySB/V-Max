@@ -3,9 +3,9 @@ defaults:
   - _self_
 
 name: PPO
-unroll_length: 64
-batch_size: 64
-num_minibatches: 8
+unroll_length: 40
+batch_size: 128
+num_minibatches: 4
 learning_rate: 3e-4
 discount: 0.99
 gae_lambda: 0.95
@@ -17,12 +17,12 @@ grad_updates_per_step: 4
 
 network:
   policy:
-    layer_sizes: [256, 64]
+    layer_sizes: [256, 64, 32]
     activation: tanh  # gelu, relu, selu
     final_activation: none  # none, tanh, relu
 
   value:
-    layer_sizes: [256, 64]
+    layer_sizes: [256, 64, 32]
     activation: tanh  # gelu, relu, selu
     final_activation: none  # tanh, relu
     num_networks: 1

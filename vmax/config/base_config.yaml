@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: ${output_dir:${algorithm.name}, ${observation_type}, ${reward_type}, ${network.encoder}, ${name_run}, ${name_exp}}
+    dir: ${output_dir:${algorithm.name}, ${observation_type}, ${network.encoder}, ${name_run}, ${name_exp}}
 
 defaults:
   - _self_
@@ -47,27 +47,13 @@ reward_config:
   red_light:
     penalty: -1.0
     weight: 1.0
-  driving_direction:
-    bonus: 0.0
+  off_route:
     penalty: -1.0
-    weight: 1.0
+    weight: 0.6
   progression:
     bonus: 1.0
     penalty: 0.0
-    weight: 0.5
-  speed:
-    bonus: 1.0
-    penalty: -1.0
-    weight: 0.5
-  ttc:
-    threshold: 1.5
-    bonus: 0.0
-    penalty: -1.0
-    weight: 1.0
-  lane_deviation:
-    bonus: 0.0
-    penalty: -1.0
-    weight: 1
+    weight: 0.2
 
 # Observation config
 observation_type: base
