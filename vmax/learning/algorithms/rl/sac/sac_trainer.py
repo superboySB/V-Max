@@ -183,6 +183,7 @@ def train(
     prefill_keys = jax.random.split(prefill_key, num_devices)
 
     buffer_state = prefill_replay_buffer(next(data_generator), buffer_state, prefill_keys)
+    jax.tree_util.tree_map(lambda x: x.block_until_ready(), buffer_state)
     print("-> Prefilling replay buffer... Done.")
 
     time_training = perf_counter()
