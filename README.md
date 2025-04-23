@@ -81,7 +81,7 @@ vmax
 
 ## ScenarioMax
 
-**ScenarioMax** is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
+[ScenarioMax](https://github.com/valeoai/ScenarioMax) is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
 
 Key objectives:
 
