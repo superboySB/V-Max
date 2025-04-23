@@ -65,7 +65,8 @@ For those who prefer to run V-Max without the complete ScenarioMax integration, 
 
 ### Mini datasets
 
-Mini datasets containings ~1000 scenarios are provided in the release section for nuPlan and WOMD, containing the ScenarioMax changes**
+Mini datasets containings ~1000 scenarios are provided in the release section for nuPlan and WOMD, with SDC paths.
+Available here: https://huggingface.co/datasets/vcharraut/V-Max_Mini_Datasets/tree/main
 
 ### Full datasets
 
