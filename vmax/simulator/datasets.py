@@ -3,15 +3,11 @@
 
 """Datasets paths."""
 
-# WAYMO DATASETS
-# fmt: off
-WOD_TRAINING = "gs://waymo_open_dataset_motion_v_1_2_0/uncompressed/tf_example/training/training_tfexample.tfrecord@1000"
-WOD_VALID = "gs://waymo_open_dataset_motion_v_1_2_0/uncompressed/tf_example/validation/validation_tfexample.tfrecord@150"
-WOD_TEST = "gs://waymo_open_dataset_motion_v_1_2_0/uncompressed/tf_example/testing/testing_tfexample.tfrecord@150"
-# fmt: on
-
-LOCAL_WOMD = "mini_datasets/mini_womd_dataset.tfrecord"
-LOCAL_NUPLAN = "mini_datasets/mini_nuplan_dataset.tfrecord"
+# LOCAL DATASETS
+LOCAL_WOMD_TRAIN = "data/train/womd.tfrecord"
+LOCAL_NUPLAN_TRAIN = "data/train/nuplan.tfrecord"
+LOCAL_WAYMO_TRAIN = "data/train/waymo.tfrecord"
+LOCAL_WOMD_VALID = "data/valid/womd.tfrecord"
 
 
 def get_dataset(dataset: str) -> str | None:
@@ -25,11 +21,10 @@ def get_dataset(dataset: str) -> str | None:
 
     """
     dataset_dict = {
-        "womd_waymo_training": WOD_TRAINING,
-        "womd_waymo_validation": WOD_VALID,
-        "womd_waymo_testing": WOD_TEST,
-        "local_womd": LOCAL_WOMD,
-        "local_nuplan": LOCAL_NUPLAN,
+        "local_womd_train": LOCAL_WOMD_TRAIN,
+        "local_nuplan_train": LOCAL_NUPLAN_TRAIN,
+        "local_waymo_train": LOCAL_WAYMO_TRAIN,
+        "local_womd_valid": LOCAL_WOMD_VALID,
     }
 
     if dataset in dataset_dict:

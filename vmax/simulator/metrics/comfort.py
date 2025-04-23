@@ -44,6 +44,50 @@ class ComfortMetric(abstract_metric.AbstractMetric):
         value *= jnp.max(jnp.abs(long_jerk)) <= 8.3
         value *= jnp.max(jnp.abs(yaw_accel)) <= 2.2
         value *= jnp.max(jnp.abs(yaw_rate)) <= 0.95
+
+        valid = jnp.all(sdc_traj.valid)
+
+        return abstract_metric.MetricResult.create_and_validate(value, valid)
+
+    def compute_reward(self, simulator_state: datatypes.SimulatorState) -> abstract_metric.MetricResult:
+        """Compute the comfort metric for the simulation.
+
+        Args:
+            simulator_state: The current simulator state.
+
+        Returns:
+            A metric result with the computed comfort measure.
+
+        """
+        past_traj = datatypes.dynamic_slice(
+            simulator_state.sim_trajectory,
+            simulator_state.timestep - 9,
+            10,
+            -1,
+        )
+        sdc_index = operations.get_index(simulator_state.object_metadata.is_sdc)
+
+        sdc_traj = jax.tree_util.tree_map(lambda x: x[sdc_index], past_traj)
+
+        lateral_accel = _compute_lateral_acceleration(sdc_traj, constants.TIME_DELTA)
+        long_accel = _compute_longitudinal_acceleration(sdc_traj, constants.TIME_DELTA)
+        long_jerk = _compute_longitudinal_jerk(sdc_traj, constants.TIME_DELTA)
+        yaw_rate = _compute_ego_yaw_rate(sdc_traj, constants.TIME_DELTA)
+        yaw_accel = _compute_ego_yaw_acceleration(sdc_traj, constants.TIME_DELTA)
+
+        value_lateral_accel = jnp.exp(-(jnp.maximum(0, jnp.max(jnp.abs(lateral_accel)) - 2.0)))
+        value_long_accel = jnp.exp(-(jnp.maximum(0, -jnp.min(long_accel) - 4.05))) * jnp.exp(
+            -(jnp.maximum(0, jnp.max(long_accel) - 2.40)),
+        )
+        value_long_jerk = jnp.exp(-(jnp.maximum(0, jnp.max(jnp.abs(long_jerk)) - 8.3)))
+        value_yaw_accel = jnp.exp(-(jnp.maximum(0, jnp.max(jnp.abs(yaw_accel)) - 2.2)))
+        value_yaw_rate = jnp.exp(-(jnp.maximum(0, jnp.max(jnp.abs(yaw_rate)) - 0.95)))
+
+        values = jnp.stack([value_lateral_accel, value_long_accel, value_long_jerk, value_yaw_accel, value_yaw_rate])
+        # Compute weighted average so close to 0 values affect the result more
+        weights = jnp.exp(-values)
+
+        value = jnp.average(values, weights=weights)
         valid = jnp.all(sdc_traj.valid)
 
         return abstract_metric.MetricResult.create_and_validate(value, valid)

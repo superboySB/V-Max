@@ -11,8 +11,8 @@ from vmax.simulator.metrics import aggregators
 
 
 _metrics_operands = {
-    "steps": aggregators.final,  # cumulative number of steps
-    "rewards": aggregators.final,  # cumulative reward at each timestep
+    "ep_len_mean": aggregators.final,  # cumulative number of steps
+    "ep_rew_mean": aggregators.final,  # cumulative reward at each timestep
     # Waymax metrics
     "log_divergence": np.mean,  # average L2 distance from expert log trajectory
     "offroad": np.max,  # 1.0 if offroad then stop as termination

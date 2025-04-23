@@ -8,17 +8,29 @@ licenses. See LICENSE for full details.
 Modifications
 -------------
 
-The following files have been modified from the original Waymax simulator and include custom changes:
- - vmax/simulator/waymax_overrides/visualization/viz.py:
-    Modified viz for improved vizualisation.
- - vmax/simulator/waymax_overrides/visualization/utils.py:
-    Modified utils, such as bounding box plotting, for improved vizualisation.
- - vmax/simulator/waymax_overrides/datatypes/roadgraph.py:
-    Modified to include the rectangle filter to the roadgraph data, also modified filter_topk_roadgraph_points to keep the original ordering of the points in the roadgraph data (by lane instead of distance)
- - vmax/simulator/waymax_overrides/datatypes/observation.py:
-    Modified to include proper transformation of the SDC paths data, and added a rectangle filter from the sdc_observation_from_state
+The following files have been modified from the original Waymax simulator:
 
+vmax/simulator/overrides/visualization/viz.py:
+ - Modified visualization functions for bounding boxes to support custom colors and transparency
+ - Enhanced object type-specific coloring for different agents
+ - Added visualization support for SDC paths
 
+vmax/simulator/overrides/visualization/utils.py:
+ - Enhanced bounding box plotting with support for overlap visualization
+ - Improved alpha transparency handling
+
+vmax/simulator/overrides/datatypes/roadgraph.py:
+ - Added filter_box_roadgraph_points to filter roadgraph within rectangular regions
+ - Modified filter_topk_roadgraph_points to preserve original point ordering by lane
+ - Added helper functions for rectangle rotation and point containment tests
+
+vmax/simulator/overrides/datatypes/observation.py:
+ - Added transform_sdc_paths for coordinate frame transformations
+ - Enhanced sdc_observation_from_state with rectangular filtering options
+ - Improved SDC paths handling and filtering
+
+vmax/simulator/overrides/datatypes/route.py:
+ - Added filter_sdc_paths function to filter route paths based on reference points
 
 
 Acknowledgments

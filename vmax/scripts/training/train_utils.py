@@ -92,7 +92,6 @@ def log_metrics(
     Args:
         num_steps: Number of steps.
         metrics: Dictionary of metric names and values.
-        current_step: Current step count.
         total_timesteps: Total timesteps.
         writer: TensorBoard summary writer.
 
@@ -106,9 +105,13 @@ def log_metrics(
 
     for key, value in metrics.items():
         if writer:
-            prefix = "metrics/" if "/" not in key else ""
-            if "steps" in key or "rewards" in key:
-                prefix = "training/"
+            if total_timesteps is None:
+                prefix = "evaluation/" if "/" not in key else ""
+            else:
+                prefix = "metrics/" if "/" not in key else ""
+                if "ep_len_mean" in key or "ep_rew_mean" in key:
+                    prefix = "rollout/"
+
             writer.add_scalar(f"{prefix}{key}", value, num_steps)
         logger.info(f"{key}: {value}")
 

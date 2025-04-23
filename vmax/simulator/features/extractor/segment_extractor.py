@@ -10,7 +10,7 @@ from vmax.simulator import features, metrics, operations
 from vmax.simulator.features import extractor
 
 
-class SegmentFeaturesExtractor(extractor.BaseFeaturesExtractor):
+class SegmentFeaturesExtractor(extractor.VecFeaturesExtractor):
     """Feature extractor for segment observation."""
 
     def __init__(
@@ -56,9 +56,9 @@ class SegmentFeaturesExtractor(extractor.BaseFeaturesExtractor):
         flatten_size = vectorized_obs.shape[-1]
         unflatten_size = 0
 
-        object_features_size = self._get_features_size(self._object_features_key)
-        traffic_lights_features_size = self._get_features_size(self._traffic_lights_features_key)
-        path_target_feature_size = self._get_features_size(self._path_target_features_key)
+        object_features_size = self.get_features_size(self._object_features_key)
+        traffic_lights_features_size = self.get_features_size(self._traffic_lights_features_key)
+        path_target_feature_size = self.get_features_size(self._path_target_features_key)
 
         sdc_object_size = 1 * self._obs_past_num_steps * object_features_size
         sdc_object_features = vectorized_obs[..., unflatten_size : unflatten_size + sdc_object_size]

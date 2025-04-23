@@ -4,7 +4,7 @@ from waymax import dynamics
 from waymax.agents.expert import infer_expert_action
 from waymax.datatypes import Action
 
-from vmax.simulator import vizualization
+from vmax.simulator import visualization
 
 
 def run_and_log_scenario(env, scenario, step_fn) -> int:
@@ -17,14 +17,14 @@ def run_and_log_scenario(env, scenario, step_fn) -> int:
     state = env.reset(scenario)
 
     imgs = []
-    imgs.append(vizualization.plot_input_agent(state, env))
+    imgs.append(visualization.plot_input_agent(state, env))
 
     count = 0
 
     while not _is_done(env, state):
         count += 1
         state = step_fn(state)
-        imgs.append(vizualization.plot_input_agent(state, env))
+        imgs.append(visualization.plot_input_agent(state, env))
 
     return imgs
 
