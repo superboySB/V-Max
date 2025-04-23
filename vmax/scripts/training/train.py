@@ -12,7 +12,7 @@ from omegaconf import DictConfig, OmegaConf
 from waymax import dynamics
 
 from vmax import PATH_TO_APP, simulator
-from vmax.learning import algorithms
+from vmax.agents import learning
 from vmax.scripts.training import train_utils
 
 
@@ -80,7 +80,7 @@ def run(cfg: DictConfig) -> None:
     progress = partial(train_utils.log_metrics, writer=writer)
 
     ## TRAINING
-    train_fn = algorithms.get_train_fn(config["algorithm"]["name"])
+    train_fn = learning.get_train_fn(config["algorithm"]["name"])
 
     train_fn(
         env=env,

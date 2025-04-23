@@ -3,6 +3,8 @@
 
 """Feature extractor for ground truth (GT) path target features."""
 
+from typing import Any
+
 import jax
 import jax.numpy as jnp
 import matplotlib as mpl
@@ -13,19 +15,32 @@ from vmax.simulator import features, operations
 from vmax.simulator.features import extractor
 
 
-class GTFeaturesExtractor(extractor.BaseFeaturesExtractor):
+class GTFeaturesExtractor(extractor.VecFeaturesExtractor):
     """Feature extractor for ground truth (GT) path target features."""
 
-    def __init__(self, path_target_config: dict | None = None) -> None:
-        """Initialize the GT features extractor.
+    def __init__(
+        self,
+        obs_past_num_steps: int | None = None,
+        objects_config: dict[str, Any] | None = None,
+        roadgraphs_config: dict[str, Any] | None = None,
+        traffic_lights_config: dict[str, Any] | None = None,
+        path_target_config: dict[str, Any] | None = None,
+    ) -> None:
+        """Initialize the GT feature extractor.
 
         Args:
+            obs_past_num_steps: Number of past steps to consider.
+            objects_config: Configuration for object features.
+            roadgraphs_config: Configuration for roadgraph features.
+            traffic_lights_config: Configuration for traffic light features.
             path_target_config: Configuration for path target features.
-
         """
-        super().__init__(path_target_config=path_target_config)
+        super().__init__(
+            obs_past_num_steps=obs_past_num_steps,
+            path_target_config=path_target_config,
+        )
 
-    def extract_features(self, state: datatypes.SimulatorState) -> jax.Array:
+    def extract_features(self, state: datatypes.SimulatorState, key: jax.Array) -> jax.Array:
         """Extract target features from the simulator state.
 
         Args:
@@ -39,36 +54,7 @@ class GTFeaturesExtractor(extractor.BaseFeaturesExtractor):
 
         path_target_features = self._build_target_features(state, sdc_observation)
 
-        return path_target_features.data
-
-    def unflatten_features(self, vectorized_obs: jax.Array) -> tuple[tuple[jax.Array, ...], tuple[jax.Array, ...]]:
-        """Unflatten a vectorized observation into path target features.
-
-        Args:
-            vectorized_obs: The vectorized observation.
-
-        Returns:
-            A tuple containing the path target features and None.
-
-        """
-        batch_dims = vectorized_obs.shape[-3:-1]
-        flatten_size = vectorized_obs.shape[-1]
-        unflatten_size = 0
-
-        path_target_feature_size = self._get_features_size(self._path_target_features_key)
-
-        path_target_size = self._num_target_path_points * path_target_feature_size
-        path_target_features = vectorized_obs[..., unflatten_size : unflatten_size + path_target_size]
-        path_target_features = path_target_features.reshape(
-            *batch_dims,
-            self._num_target_path_points,
-            path_target_feature_size,
-        )
-        unflatten_size += path_target_size
-
-        assert flatten_size == unflatten_size, f"Unflatten size {unflatten_size} does not match {flatten_size}"
-
-        return path_target_features, None
+        return jnp.array(()), jnp.array(()), jnp.array(()), jnp.array(()), path_target_features.data
 
     def plot_features(self, state: datatypes.SimulatorState, ax: mpl.axes.Axes) -> None:
         """Plot the path target features on a given axis.
@@ -82,7 +68,6 @@ class GTFeaturesExtractor(extractor.BaseFeaturesExtractor):
 
         path_target_features = self._build_target_features(state, sdc_observation)
 
-        # 4. Plot path target
         path_target_features.plot(ax)
 
     def _build_target_features(self, simulator_state, sdc_obs):
@@ -101,20 +86,16 @@ class GTFeaturesExtractor(extractor.BaseFeaturesExtractor):
 
         sdc_idx = operations.get_index(sdc_obs.is_ego)
         sdc_log_xy = jnp.take_along_axis(simulator_state.log_trajectory.xy, sdc_idx[None, None, None], axis=len_dims)
+
         sdc_pose2d = sdc_obs.pose2d.matrix
+        sdc_log_xy = geometry.transform_points(pts=sdc_log_xy, pose_matrix=sdc_pose2d).squeeze(axis=0)
 
-        sdc_log_xy = geometry.transform_points(pts=sdc_log_xy, pose_matrix=sdc_pose2d)
+        fill_value = sdc_log_xy[-1]
 
-        target = jnp.full_like(sdc_log_xy, sdc_log_xy[:, -1])
-        target = jnp.take(target, jnp.arange(self._num_target_path_points), axis=-2)
+        indices = jnp.arange(self._num_target_path_points) + simulator_state.timestep
 
-        sdc_log_xy = jax.lax.dynamic_slice_in_dim(
-            sdc_log_xy,
-            simulator_state.timestep,
-            self._num_target_path_points,
-            axis=-2,
-        )
-        target = jax.lax.dynamic_update_slice_in_dim(target, sdc_log_xy, 0, axis=-2).squeeze(0)
+        target = jnp.take_along_axis(sdc_log_xy, indices[:, None], axis=0, mode="fill", fill_value=-1)
+        target = jnp.where(target == -1, fill_value, target)
         target = extractor.normalize_path(target, self._max_meters)
 
         return features.PathTargetFeatures(xy=target)

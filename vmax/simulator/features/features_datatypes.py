@@ -58,6 +58,11 @@ class ObjectFeatures:
         plot_bbox = "length" in self.field_names and "width" in self.field_names
 
         for i in range(self.num_objects):
+            valid = self.valid[i, -1, 0]
+
+            if not valid:
+                continue
+
             trajectory = self.xy[i]
             valid = self.valid[i][:, 0]
             trajectory = trajectory[valid]
@@ -114,6 +119,9 @@ class RoadgraphFeatures:
 
     def plot(self, ax) -> None:
         """Plot the roadgraph features."""
+        if len(self.field_names) == 0:
+            return
+
         roadgraph_xy = self.xy[self.valid[..., 0]]
         roadgraph_xy = roadgraph_xy.reshape(-1, 2)
         ax.plot(roadgraph_xy[:, 0], roadgraph_xy[:, 1], ".", color="grey", ms=2)
