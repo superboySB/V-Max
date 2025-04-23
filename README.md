@@ -63,14 +63,13 @@ Key objectives:
 
 For those who prefer to run V-Max without the complete ScenarioMax integration, a lightweight wrapper is available. This wrapper generates one single SDC path at every scenario reset. Keep in mind that while this approach simplifies testing, it increases computational overhead and may not always produce an SDC path that perfectly matches the ground truth.
 
-### Mini datasets
+#### Download
 
-Mini datasets containings ~1000 scenarios are provided in the release section for nuPlan and WOMD, with SDC paths.
-Available here: https://huggingface.co/datasets/vcharraut/V-Max_Mini_Datasets/tree/main
+Datasets processed via ScenarioMax with SDC paths are available on HuggingFace:
 
-### Full datasets
+  - [Mini datasets](https://huggingface.co/datasets/vcharraut/V-Max_Mini_Datasets) (~1,000 scenarios for nuPlan and WOMD)
+  - [Full datasets](https://huggingface.co/datasets/vcharraut/V-Max_Datasets)
 
-Full datasets with SDC paths are available here: https://huggingface.co/datasets/vcharraut/V-Max_Datasets
 
 ## Get Started
 
