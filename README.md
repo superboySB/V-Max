@@ -39,22 +39,30 @@ This framework integrates simulation pipelines, observation wrappers, and realis
 
 ## Framework Structure
 
+The V-Max codebase is organized for modularity and extensibility:
+
 ```
 vmax/
-├── agents/                  # Learning agents and policies
-│   ├── learning/           # Learning algorithms (RL/IL)
-│   ├── networks/           # Neural network architectures
-│   └── rule_based/        # Rule-based algorithms (IDM/PDM)
-├── simulator/              # Simulator components
+├── agents/
+│   ├── learning/          # Reinforcement & imitation learning algorithms
+│   ├── networks/          # Neural network architectures (MTR, Wayformer, etc.)
+│   └── rule_based/        # Rule-based policies (IDM, PDM)
+├── simulator/
+│   ├── features/          # Feature extraction modules
 │   ├── metrics/           # Evaluation metrics
-│   ├── features/          # Feature extractors
-│   └── visualization/     # Visualization tools
-└── scripts/               # Training and evaluation scripts
+│   ├── overrides/         # Waymax extensions and customizations
+│   ├── visualization/     # Visualization tools and utilities
+│   └── wrappers/          # Observation and environment wrappers
+└── scripts/
 ```
+
+- **agents/**: All agent logic, including learning-based and rule-based policies.
+- **simulator/**: Simulation engine, feature extraction, metrics, and visualization.
+- **scripts/**: Entry points for training and evaluation.
 
 ## ScenarioMax
 
-**ScenarioMax** is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
+[**ScenarioMax**](https://github.com/valeoai/ScenarioMax) is a core feature of V-Max that enhances our data with **SDC paths**. These paths are crucial for calculating targets, rewards, and various metrics during simulation.
 
 Key objectives:
 
@@ -116,7 +124,7 @@ python vmax/scripts/training/train.py total_timesteps=$num_env_steps path_datase
 - **[Thomas Tournaire](https://github.com/Titou78)**
 - **[Wael Doulazmi](https://github.com/WaelDLZ)**
 
-## 🙏Acknowledgements
+## Acknowledgements
 
 V-Max is built upon the innovative ideas and contributions of several outstanding open-source projects:
 
