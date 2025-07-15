@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/jax:25.04-py3
+FROM nvcr.io/nvidia/jax:24.04-py3
 
 LABEL maintainer="Zipeng Dai <daizipeng@bit.edu.cn>"
 
@@ -12,8 +12,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git tmux vim gedit curl wget libgl1 ffmpeg libpng-dev libjpeg-dev
 
 WORKDIR /workspace
+
+RUN git clone https://github.com/superboySB/ScenarioMax
+RUN cd ScenarioMax && pip install -e .
+RUN cd ScenarioMax && pip install -e devkit/nuplan-devkit && \
+    pip install -r devkit/nuplan-devkit/requirements.txt
+
 RUN git clone https://github.com/superboySB/V-Max
-RUN cd V-Max && pip install -r requirements.txt
+RUN cd V-Max && pip install --upgrade pip && pip install -r requirements.txt
 RUN cd V-Max && pip install -e .
 
 # 如需清理代理，取消注释
