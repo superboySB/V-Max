@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/jax:24.04-py3
+FROM nvcr.io/nvidia/jax:23.08-py3
 
 LABEL maintainer="Zipeng Dai <daizipeng@bit.edu.cn>"
 
