@@ -35,6 +35,8 @@ python scenariomax/convert_dataset.py \
   --num_workers 3 \
   --tfrecord_name valid
 
+cd /workspace/V-Max
+
 python -m vmax.scripts.evaluate.evaluate --scenario_indexes 0 --sdc_actor expert --render True --path_dataset womd_valid --batch_size 1
 ```
 
