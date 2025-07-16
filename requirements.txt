@@ -2,7 +2,7 @@
 waymo-waymax @ git+https://github.com/waymo-research/waymax.git@main
 
 # JAX with CUDA 12 support
-# jax[cuda12]<0.6
+jax[cuda12]<0.6
 
 # Neural Network Libraries
 flax

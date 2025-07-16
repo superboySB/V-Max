@@ -7,8 +7,8 @@ docker build -t dzp_waymax:0717 --network=host --progress=plain .
 xhost +
 
 docker run -itd --privileged --gpus all --net=host -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /dev/shm:/dev/shm \
-  -v /home/Public/tiny_waymo:/workspace/tiny_waymo \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro --shm-size=4g \
+  -v /home/dzp/Public/tiny_waymo:/workspace/tiny_waymo \
   --name dzp-waymax-0717 \
   dzp_waymax:0717 \
   /bin/bash
