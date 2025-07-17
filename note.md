@@ -19,7 +19,7 @@ cd /workspace/ScenarioMax
 
 # num_worker不超过原有tfrecord块数
 python scenariomax/convert_dataset.py \
-  --waymo_src /home/Public/tiny_waymo \
+  --waymo_src /workspace/tiny_waymo \
   --dst /workspace/V-Max/womd_valid \
   --target_format tfexample \
   --num_workers 3 \
@@ -27,7 +27,7 @@ python scenariomax/convert_dataset.py \
 
 cd /workspace/V-Max
 
-python -m vmax.scripts.evaluate.evaluate --scenario_indexes 0 --sdc_actor expert --render True --path_dataset womd_valid --batch_size 1
+python -m vmax.scripts.evaluate.evaluate --scenario_indexes 0 --sdc_actor expert --render True --path_dataset /workspace/V-Max/womd_valid/valid.tfrecord --batch_size 1
 
 ```
 ### 内网使用

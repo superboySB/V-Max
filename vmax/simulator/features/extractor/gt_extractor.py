@@ -94,8 +94,19 @@ class GTFeaturesExtractor(extractor.VecFeaturesExtractor):
 
         indices = jnp.arange(self._num_target_path_points) + simulator_state.timestep
 
-        target = jnp.take_along_axis(sdc_log_xy, indices[:, None], axis=0, mode="fill", fill_value=-1)
-        target = jnp.where(target == -1, fill_value, target)
+        # target = jnp.take_along_axis(sdc_log_xy, indices[:, None], axis=0, mode="fill", fill_value=-1)
+        # target = jnp.where(target == -1, fill_value, target)
+        # Simulate mode="fill" behavior for compatibility with older JAX versions
+        # Create a mask for valid indices
+        valid_mask = indices < sdc_log_xy.shape[0]
+        
+        # Use take_along_axis without mode parameter
+        target = jnp.take_along_axis(sdc_log_xy, indices[:, None], axis=0)
+        
+        # Replace invalid values with fill_value (equivalent to mode="fill")
+        target = jnp.where(valid_mask[:, None], target, fill_value)
+
+
         target = extractor.normalize_path(target, self._max_meters)
 
         return features.PathTargetFeatures(xy=target)

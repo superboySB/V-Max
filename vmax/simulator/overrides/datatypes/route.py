@@ -56,7 +56,22 @@ def filter_sdc_paths(sdc_paths: datatypes.Paths, reference_points: jax.Array, nu
             axis=-1,
             dtype=jnp.float32,
         )
-        filtered = jnp.take_along_axis(stacked, indices[None, ..., None], axis=-2, fill_value=-1.0)
+        
+        # New version
+        # filtered = jnp.take_along_axis(stacked, indices[None, ..., None], axis=-2, fill_value=-1.0)
+        # Use take_along_axis without fill_value for compatibility with older JAX versions
+        # Create a mask for valid indices
+        valid_mask = indices < sdc_paths.num_points_per_path
+        
+        # Use take_along_axis without fill_value parameter
+        filtered = jnp.take_along_axis(stacked, indices[None, ..., None], axis=-2)
+        
+        # Replace invalid values with -1.0 (equivalent to fill_value=-1.0)
+        filtered = jnp.where(
+            valid_mask[..., None, None], 
+            filtered, 
+            -1.0
+        )
 
         return datatypes.Paths(
             x=filtered[..., 0],
