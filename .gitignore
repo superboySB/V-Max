@@ -4,4 +4,7 @@
 
 # Local data
 mini_datasets/
+*.tfrecord
+runs/
+benchmark/
 
